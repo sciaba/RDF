@@ -79,8 +79,6 @@ class TtbarAnalysis(dict):
         self.variations = {} # serves as temporary storage for all histograms produced by VariationsFor
         self.download_input_data = download_input_data  # set True to download input files
         self.use_local_data = use_local_data            # set True to use locally placed input files instead of https accessing
-        self.af_name = af_name
-        self.datasets = datasets
         self._nevts_total = {}
         self.n_files_max_per_sample = n_files_max_per_sample  #the number of files to be processed per sample
         self.input_data = self._construct_fileset(af_name, datasets) # dictionary assigning file URLs (paths) to each process, variation, and region
@@ -124,7 +122,6 @@ class TtbarAnalysis(dict):
                     else:
                         file_paths = [f.replace("https://xrootd-local.unl.edu:1094//store/user/AGC", "root://eoscms.cern.ch//eos/cms/opstest/asciaba/agc") for f in file_paths]
                 if (af_name == "cernbox-xrootd"):
-                    # point to files on EOS using xrootd
                     file_paths = [f.replace("https://xrootd-local.unl.edu:1094//store/user/AGC", "root://eosuser.cern.ch//eos/user/a/asciaba/datasets/agc") for f in file_paths]
                 if (af_name == "cern-local"):
                     file_paths = [f.replace("https://xrootd-local.unl.edu:1094//store/user/AGC", "/data/datasets/agc") for f in file_paths]
@@ -377,7 +374,6 @@ analysisManager['ttbar'].keys()
 # In[9]:
 
 
-#get_ipython().run_line_magic('jsroot', 'off')
 c = TCanvas('c', 'c', 3000*2, 2000*2) 
 hlist = analysisManager.GetProcStack(region='4j1b')
 hs = THStack('j4b1', '>=4 jets, 1 b-tag; H_{T} [GeV]')
@@ -452,7 +448,3 @@ output.Close()
 
 
 # In[ ]:
-
-
-
-
