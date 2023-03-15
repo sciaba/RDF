@@ -17,10 +17,11 @@ usage() {
     echo "                   unl: from Mebraska via HTTP"
     echo "        -w NWORKERS: specify how many workers should be used"
     echo "        -m: use of the merged dataset should be used instead of the original"
+    echo "        -x: read through the CERN X-Cache instance"
     echo "        -h: this help message"
 }
 
-while getopts "n:a:w:mh" arg; do
+while getopts "n:a:w:mxh" arg; do
     case $arg in
 	n)
 	    nfiles=$OPTARG
@@ -30,6 +31,9 @@ while getopts "n:a:w:mh" arg; do
 	    ;;
 	w)
 	    workers=$OPTARG
+	    ;;
+	x)
+	    xcache=1
 	    ;;
 	m)
 	    merged=1
@@ -57,13 +61,32 @@ else
     WDIR="rdf_ttbar_merged_run_"
     datasets="ntuples_merged.json"
 fi
+
+if [ -z "${xcache}" ] ; then
+   xcache='False'
+else
+    WDIR="${WDIR}xcache_"
+    xcache='True'
+fi
+
 WDIR="${WDIR}${nfiles}_${afname}_${workers}"
-if [ -d ${WDIR} ] ; then
-    echo "Directory already exit. Exiting..."
-    exit 1
+pre=$(ls -1d ${WDIR}.* 2> /dev/null | tail -1)
+if [ -n "$pre" ] ; then
+    pre=${pre: -1}
+else
+    pre=0
+fi
+new=$((pre + 1))
+if [ -d $WDIR ] ; then
+    echo "Moving $WDIR to $WDIR.$new"
+    mv $WDIR $WDIR.$new
 fi
 mkdir ${WDIR}
-cat rdf_ttbar_template.py | sed "s/_NFILES_/${nf}/" | sed "s/_AFNAME_/${afname}/" | sed "s/_WORKERS_/${workers}/" | sed "s/_DATASETS_/${datasets}/" > ${WDIR}/rdf_ttbar_tmp.py
+if [ $? != 0 ] ; then
+    echo "Could not create test dir. Exiting..."
+    exit 1
+fi
+cat rdf_ttbar_template.py | sed "s/_NFILES_/${nf}/" | sed "s/_AFNAME_/${afname}/" | sed "s/_WORKERS_/${workers}/" | sed "s/_DATASETS_/${datasets}/" | sed "s/_XCACHE_/${xcache}/" > ${WDIR}/rdf_ttbar_tmp.py
 cd ${WDIR}
 ln -s ../utils utils
 ln -s ../helper.cpp .

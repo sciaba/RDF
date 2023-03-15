@@ -81,7 +81,7 @@ class TtbarAnalysis(dict):
         self.use_local_data = use_local_data            # set True to use locally placed input files instead of https accessing
         self._nevts_total = {}
         self.n_files_max_per_sample = n_files_max_per_sample  #the number of files to be processed per sample
-        self.input_data = self._construct_fileset(af_name, datasets) # dictionary assigning file URLs (paths) to each process, variation, and region
+        self.input_data = self._construct_fileset(af_name, datasets, use_xcache=_XCACHE_) # dictionary assigning file URLs (paths) to each process, variation, and region
         self.num_bins = num_bins
         self.bin_low = bin_low
         self.bin_high = bin_high
@@ -99,7 +99,7 @@ class TtbarAnalysis(dict):
         ROOT.gInterpreter.Declare(f"auto pt_res_up_obj = pt_res_up({ROOT.GetThreadPoolSize()});")
         
 
-    def _construct_fileset(self, af_name, datasets):
+    def _construct_fileset(self, af_name, datasets, use_xcache=False):
         n_files_max_per_sample = self.n_files_max_per_sample
         with open (datasets) as f:
             file_info = json.load(f)
@@ -116,6 +116,8 @@ class TtbarAnalysis(dict):
                 if n_files_max_per_sample != -1:
                     file_list = file_list[:n_files_max_per_sample]  # use partial set of samples
                 file_paths = [f["path"] for f in file_list]
+                if af_name == "unl-xrootd":
+                    file_paths = [f.replace("https://xrootd-local.unl.edu:1094", "root://xrootd-local.unl.edu:1094") for f in file_paths]
                 if (af_name == "cern-xrootd"):
                     if (re.search("merged", datasets)):
                         file_paths = [f.replace("https://xrootd-local.unl.edu:1094//store/user/AGC", "root://eoscms.cern.ch//eos/cms/store/test/agc") for f in file_paths]
@@ -125,6 +127,8 @@ class TtbarAnalysis(dict):
                     file_paths = [f.replace("https://xrootd-local.unl.edu:1094//store/user/AGC", "root://eosuser.cern.ch//eos/user/a/asciaba/datasets/agc") for f in file_paths]
                 if (af_name == "cern-local"):
                     file_paths = [f.replace("https://xrootd-local.unl.edu:1094//store/user/AGC", "/data/datasets/agc") for f in file_paths]
+                if use_xcache:
+                    file_paths = [f.replace("root:", "root://xcache01.cern.ch//xroot:") for f in file_paths]
                 nevts_total = sum([f["nevts"] for f in file_list])
                 self._nevts_total[process].update({variation:nevts_total})
                 fileset[process].update({variation: file_paths})
