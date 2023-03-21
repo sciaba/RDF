@@ -1,6 +1,7 @@
 #! /bin/bash
 
 # Default values
+maxjobs=3
 afname="unl"
 workers=4
 fraction=50
@@ -70,6 +71,10 @@ else
 fi
 
 WDIR="${WDIR}${nfiles}_${afname}_${workers}"
+if [[ -d "${WDIR}.${maxjobs}" ]] ; then
+    echo "Enough jobs already. Exiting..."
+    exit 1
+fi
 pre=$(ls -1d ${WDIR}.* 2> /dev/null | tail -1)
 if [ -n "$pre" ] ; then
     pre=${pre: -1}
