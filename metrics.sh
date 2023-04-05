@@ -18,10 +18,10 @@ stime=$(grep -A 18 Max ${logdir}/prmon.json | awk '/stime/ {sub(/,/, "", $2); pr
 wtime=$(grep -A 18 Max ${logdir}/prmon.json | awk '/wtime/ {sub(/,/, "", $2); print $2}')
 rxmbytes=$(grep -A 18 Max ${logdir}/prmon.json | awk '/rx_bytes/ {sub(/,/, "", $2); print ($2 / 1024 ** 2)}')
 rxgbytes=$(grep -A 18 Max ${logdir}/prmon.json | awk '/rx_bytes/ {sub(/,/, "", $2); print ($2 / 1024 ** 3)}')
-rrate=$(awk "BEGIN {print($rmbytes / $wtime)}")
-rxrate=$(awk "BEGIN {print($rxmbytes / $wtime)}")
-cpueff=$(awk "BEGIN {print(100*($utime+$stime)/$wtime/$workers)}")
 exetime=$(grep '^processing took' ${logdir}/rdf_ttbar.out | awk '{print $3}')
+rrate=$(awk "BEGIN {print($rmbytes / $exetime)}")
+rxrate=$(awk "BEGIN {print($rxmbytes / $exetime)}")
+cpueff=$(awk "BEGIN {print(100*($utime+$stime)/$wtime/$workers)}")
 datarate=$(awk "BEGIN {print($rmbytes / $exetime)}")
 ndatarate=$(awk "BEGIN {print($rxmbytes / $exetime)}")
 echo "Total read data from OS: $rchar GiB"

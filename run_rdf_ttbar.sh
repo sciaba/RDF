@@ -4,7 +4,6 @@
 maxjobs=3
 afname="unl"
 workers=4
-fraction=50
 
 usage() {
     echo "Usage : run_rdf_ttbar.sh [-n NFILES] -a AFNAME -w NWORKERS [-m] -h]"
@@ -98,4 +97,5 @@ ln -s ../helper.cpp .
 ln -s ../ntuples.json .
 ln -s ../ntuples_merged.json .
 export EXTRA_CLING_ARGS="-O2"
+env > env.out
 prmon -i 5 -- python3 rdf_ttbar_tmp.py &> rdf_ttbar.out

@@ -11,6 +11,15 @@ rx_rate=()
 metrics() {
     local prmon=$1/prmon.json
     local output=$1/rdf_ttbar.out
+    if [[ ! -f ${prmon} || ! -f ${output} ]] ; then
+	echo "Job output not found. Exiting..." 1>&2
+	exit 1
+    fi
+    grep '^execution took' ${output} &> /dev/null
+    if [[ ! $? ]] ; then
+	echo "Job output incomplete. Exiting..."1>&2
+	exit 1
+    fi
     local workers=$2
     rmb=$(grep -A 18 Max ${prmon} | awk '/read_bytes/ {sub(/,/, "", $2); print ($2 / 1024 ** 2)}')
     read_mbytes+=($rmb)
@@ -48,10 +57,10 @@ fi
 echo "${njobs} jobs for ${workers} workers" 1>&2
 #echo "wtime,wtime_err,CPU_eff,CPU_eff_err,rate,rate_err,tput,tput_err"
 echo -n "${workers},"
-echo -n ${wtime[@]} | awk '{for (i=1;i<=NF;i++)sum+=$i; avg=(sum/NF); for (i=1;i<=NF;i++)sum2+=($i-avg)^2;err=sqrt(sum2/(NF-1)/NF); printf "%.1f,%.1f,", avg, err}'
-echo -n ${eff[@]} | awk '{for (i=1;i<=NF;i++)sum+=$i; avg=(sum/NF); for (i=1;i<=NF;i++)sum2+=($i-avg)^2;err=sqrt(sum2/(NF-1)/NF); printf "%.1f,%.1f,", avg, err}'
+echo -n ${wtime[@]} | awk '{for (i=1;i<=NF;i++)sum+=$i; avg=(sum/NF); for (i=1;i<=NF;i++)sum2+=($i-avg)^2;err=sqrt(sum2/(NF-1)); printf "%.1f,%.1f,", avg, err}'
+echo -n ${eff[@]} | awk '{for (i=1;i<=NF;i++)sum+=$i; avg=(sum/NF); for (i=1;i<=NF;i++)sum2+=($i-avg)^2;err=sqrt(sum2/(NF-1)); printf "%.2f,%.2f,", avg, err}'
 if [ -n "$locstor" ] ; then
-    echo -n ${read_rate[@]} | awk '{for (i=1;i<=NF;i++)sum+=$i; avg=(sum/NF); for (i=1;i<=NF;i++)sum2+=($i-avg)^2;err=sqrt(sum2/(NF-1)/NF); printf "%.0f,%.0f\n", avg, err}'
+    echo -n ${read_rate[@]} | awk '{for (i=1;i<=NF;i++)sum+=$i; avg=(sum/NF); for (i=1;i<=NF;i++)sum2+=($i-avg)^2;err=sqrt(sum2/(NF-1)); printf "%.1f,%.1f\n", avg, err}'
 else
-    echo -n ${rx_rate[@]} | awk '{for (i=1;i<=NF;i++)sum+=$i; avg=(sum/NF); for (i=1;i<=NF;i++)sum2+=($i-avg)^2;err=sqrt(sum2/(NF-1)/NF); printf "%.0f,%.0f\n", avg, err}'
+    echo -n ${rx_rate[@]} | awk '{for (i=1;i<=NF;i++)sum+=$i; avg=(sum/NF); for (i=1;i<=NF;i++)sum2+=($i-avg)^2;err=sqrt(sum2/(NF-1)); printf "%.1f,%.1f\n", avg, err}'
 fi
