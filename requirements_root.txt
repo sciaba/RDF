@@ -1,0 +1,4 @@
+root==6.28
+xrootd==5.5.3
+python==3.9.16
+dask
