@@ -18,10 +18,12 @@ usage() {
     echo "        -w NWORKERS: specify how many workers should be used"
     echo "        -m: use of the merged dataset should be used instead of the original"
     echo "        -x: read through the CERN X-Cache instance"
+    echo "        -c: disable the xrootd connection multiplexing"
+    echo "        -p: add export XRD_PARALLELEVTLOOP=10 to optimise xrootd I/O"
     echo "        -h: this help message"
 }
 
-while getopts "n:a:w:mxh" arg; do
+while getopts "n:a:w:mxcph" arg; do
     case $arg in
 	n)
 	    nfiles=$OPTARG
@@ -37,6 +39,12 @@ while getopts "n:a:w:mxh" arg; do
 	    ;;
 	m)
 	    merged=1
+	    ;;
+	c)
+	    mpoff=1
+	    ;;
+	p)
+	    xrdopt=1
 	    ;;
 	?|h)
 	    usage
@@ -62,8 +70,19 @@ else
     datasets="ntuples_merged.json"
 fi
 
+if [ -n "${xrdopt}" ] ; then
+    export XRD_PARALLELEVTLOOP=10
+    WDIR="${WDIR}xrd_"
+fi
+
+if [ -z "${mpoff}" ] ; then
+    mpoff=0
+else
+    WDIR="${WDIR}nomp_"
+fi
+
 if [ -z "${xcache}" ] ; then
-   xcache='False'
+    xcache='False'
 else
     WDIR="${WDIR}xcache_"
     xcache='True'
@@ -90,12 +109,13 @@ if [ $? != 0 ] ; then
     echo "Could not create test dir. Exiting..."
     exit 1
 fi
-cat rdf_ttbar_template.py | sed "s/_NFILES_/${nf}/" | sed "s/_AFNAME_/${afname}/" | sed "s/_WORKERS_/${workers}/" | sed "s/_DATASETS_/${datasets}/" | sed "s/_XCACHE_/${xcache}/" > ${WDIR}/rdf_ttbar_tmp.py
+cat rdf_ttbar_template.py | sed "s/_NFILES_/${nf}/" | sed "s/_AFNAME_/${afname}/" | sed "s/_WORKERS_/${workers}/" | sed "s/_DATASETS_/${datasets}/" | sed "s/_XCACHE_/${xcache}/" | sed "s/_MPOFF_/${mpoff}/" > ${WDIR}/rdf_ttbar_tmp.py
 cd ${WDIR}
 ln -s ../utils utils
 ln -s ../helper.cpp .
 ln -s ../ntuples.json .
 ln -s ../ntuples_merged.json .
 export EXTRA_CLING_ARGS="-O2"
+export XRD_APPNAME="AGCRDF"
 env > env.out
 prmon -i 5 -- python3 rdf_ttbar_tmp.py &> rdf_ttbar.out

@@ -13,9 +13,11 @@
 
 NUM_WORKERS = _WORKERS_
 DATASETS = "_DATASETS_"
+mpoff = _MPOFF_
 
 import re
 import json
+import random
 import ROOT
 from ROOT import RDataFrame, TCanvas, THStack
 ROOT.EnableImplicitMT(NUM_WORKERS)
@@ -24,6 +26,7 @@ print(f'The num of threads = {ROOT.GetThreadPoolSize()}')
 # ROOT.TH1.SetDefaultSumw2(true)
 # verbosity = ROOT.Experimental.RLogScopedVerbosity(ROOT.Detail.RDF.RDFLogChannel(), ROOT.Experimental.ELogLevel.kInfo)
 
+clnames = ["rdf" + str(i) for i in range(NUM_WORKERS)]
 
 # ### Setting up environment: ***helper.cpp*** compilation
 
@@ -129,6 +132,8 @@ class TtbarAnalysis(dict):
                     file_paths = [f.replace("https://xrootd-local.unl.edu:1094//store/user/AGC", "/data/datasets/agc") for f in file_paths]
                 if use_xcache:
                     file_paths = [f.replace("root:", "root://xcache01.cern.ch//xroot:") for f in file_paths]
+                if mpoff:
+                    file_paths = [f.replace("root://", "root://" + random.choice(clnames) + "@", 1) for f in file_paths]
                 nevts_total = sum([f["nevts"] for f in file_list])
                 self._nevts_total[process].update({variation:nevts_total})
                 fileset[process].update({variation: file_paths})
@@ -303,8 +308,8 @@ class TtbarAnalysis(dict):
                 if variation not in self[process]: self[process][variation] = {}
                 hist = hist_map[hist_name]
                 if not isinstance(hist, ROOT.TH1D): hist = hist.GetValue()
-                analysisManager[process][variation][region] = hist
-        analysisManager.ExportJSON()
+                self[process][variation][region] = hist
+        self.ExportJSON()
         
     def GetProcStack(self, region, variation='nominal'):
         return [self[process][variation][region] for process in self]

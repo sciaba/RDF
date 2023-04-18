@@ -15,7 +15,7 @@ metrics() {
 	echo "Job output not found. Exiting..." 1>&2
 	exit 1
     fi
-    grep '^execution took' ${output} &> /dev/null
+    grep '^processing took' ${output} &> /dev/null
     if [[ ! $? ]] ; then
 	echo "Job output incomplete. Exiting..."1>&2
 	exit 1
