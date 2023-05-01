@@ -84,7 +84,7 @@ class TtbarAnalysis(dict):
         self.use_local_data = use_local_data            # set True to use locally placed input files instead of https accessing
         self._nevts_total = {}
         self.n_files_max_per_sample = n_files_max_per_sample  #the number of files to be processed per sample
-        self.input_data = self._construct_fileset(af_name, datasets, use_xcache=_XCACHE_) # dictionary assigning file URLs (paths) to each process, variation, and region
+        self.input_data = self._construct_fileset(af_name, datasets, use_xcache='_XCACHE_') # dictionary assigning file URLs (paths) to each process, variation, and region
         self.num_bins = num_bins
         self.bin_low = bin_low
         self.bin_high = bin_high
@@ -130,8 +130,10 @@ class TtbarAnalysis(dict):
                     file_paths = [f.replace("https://xrootd-local.unl.edu:1094//store/user/AGC", "root://eosuser.cern.ch//eos/user/a/asciaba/datasets/agc") for f in file_paths]
                 if (af_name == "cern-local"):
                     file_paths = [f.replace("https://xrootd-local.unl.edu:1094//store/user/AGC", "/data/datasets/agc") for f in file_paths]
-                if use_xcache:
+                if use_xcache == 'hdd':
                     file_paths = [f.replace("root:", "root://xcache01.cern.ch//xroot:") for f in file_paths]
+                if use_xcache == 'ssd':
+                    file_paths = [f.replace("root:", "root://xcache03.cern.ch//xroot:") for f in file_paths]
                 if mpoff:
                     file_paths = [f.replace("root://", "root://" + random.choice(clnames) + "@", 1) for f in file_paths]
                 nevts_total = sum([f["nevts"] for f in file_list])

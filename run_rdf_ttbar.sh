@@ -17,13 +17,13 @@ usage() {
     echo "                   unl: from Mebraska via HTTP"
     echo "        -w NWORKERS: specify how many workers should be used"
     echo "        -m: use of the merged dataset should be used instead of the original"
-    echo "        -x: read through the CERN X-Cache instance"
+    echo "        -x hdd/ssd: read through the CERN X-Cache instance"
     echo "        -c: disable the xrootd connection multiplexing"
     echo "        -p: add export XRD_PARALLELEVTLOOP=10 to optimise xrootd I/O"
     echo "        -h: this help message"
 }
 
-while getopts "n:a:w:mxcph" arg; do
+while getopts "n:a:w:mx:cph" arg; do
     case $arg in
 	n)
 	    nfiles=$OPTARG
@@ -35,7 +35,7 @@ while getopts "n:a:w:mxcph" arg; do
 	    workers=$OPTARG
 	    ;;
 	x)
-	    xcache=1
+	    xcache=$OPTARG
 	    ;;
 	m)
 	    merged=1
@@ -83,9 +83,10 @@ fi
 
 if [ -z "${xcache}" ] ; then
     xcache='False'
-else
+elif [ "${xcache}" == 'hdd' ] ; then
     WDIR="${WDIR}xcache_"
-    xcache='True'
+elif [ "${xcache}" == 'ssd' ] ; then
+    WDIR="${WDIR}xcachessd_"
 fi
 
 WDIR="${WDIR}${nfiles}_${afname}_${workers}"
