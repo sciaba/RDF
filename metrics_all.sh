@@ -3,6 +3,7 @@
 read_mbytes=()
 rx_mbytes=()
 wtime=()
+cputime=()
 eff=()
 exe=()
 read_rate=()
@@ -20,6 +21,7 @@ metrics() {
     s=$(grep -A 18 Max ${prmon} | awk '/stime/ {sub(/,/, "", $2); print $2}')
     w=$(grep -A 18 Max ${prmon} | awk '/wtime/ {sub(/,/, "", $2); print $2}')
     wtime+=($w)
+    cputime+=($((u+s)))
     eff+=($(awk "BEGIN {print(100*($u+$s)/$w/$workers)}"))
     e=$(grep '^processing took' ${output} | awk '{print $3}')
     exe+=($e)
@@ -53,6 +55,8 @@ else
 fi
 echo -n "Wallclock time:         "
 echo ${wtime[@]} | awk '{for (i=1;i<=NF;i++)sum+=$i; avg=(sum/NF); for (i=1;i<=NF;i++)sum2+=($i-avg)^2;err=sqrt(sum2/(NF-1)); printf "%.1f +- %.1f sec\n", avg, err}'
+echo -n "CPU time:               "
+echo ${cputime[@]} | awk '{for (i=1;i<=NF;i++)sum+=$i; avg=(sum/NF); for (i=1;i<=NF;i++)sum2+=($i-avg)^2;err=sqrt(sum2/(NF-1)); printf "%.1f +- %.1f sec\n", avg, err}'
 echo -n "CPU eff:                "
 echo ${eff[@]} | awk '{for (i=1;i<=NF;i++)sum+=$i; avg=(sum/NF); for (i=1;i<=NF;i++)sum2+=($i-avg)^2;err=sqrt(sum2/(NF-1)); printf "%.1f +- %.1f %\n", avg, err}'
 echo -n "Execution time:         "

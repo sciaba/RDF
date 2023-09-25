@@ -6,7 +6,7 @@ afname="unl"
 workers=4
 
 usage() {
-    echo "Usage : run_rdf_ttbar.sh [-n NFILES] -a AFNAME -w NWORKERS [-m] -h]"
+    echo "Usage : run_rdf_ttbar.sh [-n NFILES] -a AFNAME -w NWORKERS [-m] [x hdd|sdd] [-c] [-p] [-b] -h]"
     echo
     echo "        -n NFILES: specify the maximum number of files per dataset"
     echo "        -a AFNAME: specify the data source. Possible choices:"
@@ -20,10 +20,11 @@ usage() {
     echo "        -x hdd/ssd: read through the CERN X-Cache instance"
     echo "        -c: disable the xrootd connection multiplexing"
     echo "        -p: add export XRD_PARALLELEVTLOOP=10 to optimise xrootd I/O"
+    echo "        -b: use the ROOT nightly build installed under \$HOME/root"
     echo "        -h: this help message"
 }
 
-while getopts "n:a:w:mx:cph" arg; do
+while getopts "n:a:w:mx:cpbh" arg; do
     case $arg in
 	n)
 	    nfiles=$OPTARG
@@ -46,7 +47,10 @@ while getopts "n:a:w:mx:cph" arg; do
 	p)
 	    xrdopt=1
 	    ;;
-	?|h)
+	b)
+	    nightly=1
+	    ;;
+        ?|h)
 	    usage
 	    exit 1
 	    ;;
@@ -79,6 +83,12 @@ if [ -z "${mpoff}" ] ; then
     mpoff=0
 else
     WDIR="${WDIR}nomp_"
+fi
+
+if [ -z "${nightly}" ] ; then
+    nightly=0
+else
+    WDIR="${WDIR}nightly_"
 fi
 
 if [ -z "${xcache}" ] ; then
@@ -118,5 +128,9 @@ ln -s ../ntuples.json .
 ln -s ../ntuples_merged.json .
 export EXTRA_CLING_ARGS="-O2"
 export XRD_APPNAME="AGCRDF"
+if [[ $nightly == 1 ]] ; then
+    . $HOME/root/bin/thisroot.sh
+fi
+export XRD_RECORDERPATH=$PWD/xrdrecord.csv
 env > env.out
 prmon -i 5 -- python3 rdf_ttbar_tmp.py &> rdf_ttbar.out

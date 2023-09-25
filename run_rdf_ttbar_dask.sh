@@ -118,4 +118,7 @@ ln -s ../ntuples_merged.json .
 export EXTRA_CLING_ARGS="-O2"
 export XRD_APPNAME="AGCRDF"
 env > env.out
+ulimit -n 4096
 prmon -i 5 -- python rdf_ttbar_tmp.py &> rdf_ttbar.out
+sleep 300
+rm -rf /tmp/dask-worker-space/*
